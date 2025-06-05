@@ -5,6 +5,7 @@
     "ts-lambda-sns-sample": "bin/ts-lambda-sns-sample.js"
   },
   "scripts": {
+    "deploy:dev": "cdk deploy -c env=dev --profile=pcms-dev",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
