@@ -3,6 +3,10 @@ import { Construct } from "constructs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as subs from "aws-cdk-lib/aws-sns-subscriptions";
+import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+import * as cloudwatch_actions from "aws-cdk-lib/aws-cloudwatch-actions";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class TsLambdaSnsSampleStack extends cdk.Stack {
@@ -27,5 +31,28 @@ export class TsLambdaSnsSampleStack extends cdk.Stack {
       description: "Hello World Lambda function",
       logGroup: logGroup, // ここで明示的にロググループを指定
     });
+
+    // SNSトピックの作成
+    const topic = new sns.Topic(this, "LambdaErrorTopic", {
+      displayName: "Lambda Error Notification Topic",
+    });
+
+    // メールサブスクリプションの追加（メールアドレスを適宜変更してください）
+    topic.addSubscription(
+      new subs.EmailSubscription("tanaka.masato@jp.panasonic.com")
+    );
+
+    // Lambdaのエラーメトリクスにアラームを設定
+    const errorAlarm = new cloudwatch.Alarm(this, "LambdaErrorAlarm", {
+      metric: lambda.metricErrors(),
+      threshold: 1,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      alarmDescription: "Alarm when the Lambda function has errors",
+    });
+
+    // アラーム発報時にSNSトピックを通知先に設定
+    errorAlarm.addAlarmAction(new cloudwatch_actions.SnsAction(topic));
   }
 }
