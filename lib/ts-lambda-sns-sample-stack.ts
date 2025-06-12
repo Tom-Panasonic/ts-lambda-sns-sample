@@ -32,6 +32,16 @@ export class TsLambdaSnsSampleStack extends cdk.Stack {
       logGroup: logGroup, // ここで明示的にロググループを指定
     });
 
+    // EventBridge (CloudWatch Events) で日本時間AM3:15に毎日実行
+    const rule = new cdk.aws_events.Rule(this, "Daily315JSTRule", {
+      schedule: cdk.aws_events.Schedule.cron({
+        minute: "15",
+        hour: "18", // JST 3:15AM = UTC 18:15 (前日)
+        // day, month, year, weekDayはデフォルトで「*」なので省略可
+      }),
+    });
+    rule.addTarget(new cdk.aws_events_targets.LambdaFunction(lambda));
+
     // SNSトピックの作成
     const topic = new sns.Topic(this, "LambdaErrorTopic", {
       displayName: "Lambda Error Notification Topic",
