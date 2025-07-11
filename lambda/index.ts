@@ -7,7 +7,6 @@ exports.handler = async () => {
   const b = Math.floor(Math.random() * 100) + 1;
   const result = sum(a, b);
 
-  throw new Error("This is a test error!"); // エラーを発生させる
   return {
     statusCode: 200,
     body: JSON.stringify({
